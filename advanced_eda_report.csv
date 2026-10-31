@@ -1,0 +1,11 @@
+Column,Skewness,Interpretation,Report,Lower Bound,Upper Bound,Outlier Count,Outlier Percentage,Unique Categories,Most Frequent Value,Most Frequent Count,Missing Values,Missing Percentage
+Age,0.541,Right-skewed,Skewness,,,,,,,,,
+Salary,0.992,Right-skewed,Skewness,,,,,,,,,
+Age,,,Outliers,19.0,27.0,0.0,0.0,,,,,
+Salary,,,Outliers,17500.0,37500.0,0.0,0.0,,,,,
+Name,,,Categorical,,,,,5.0,Rahul,2.0,,
+Department,,,Categorical,,,,,2.0,IT,3.0,,
+Age,,,Missing Values,,,,,,,,1.0,16.666666666666664
+Salary,,,Missing Values,,,,,,,,1.0,16.666666666666664
+Department,,,Missing Values,,,,,,,,1.0,16.666666666666664
+Name,,,Missing Values,,,,,,,,0.0,0.0

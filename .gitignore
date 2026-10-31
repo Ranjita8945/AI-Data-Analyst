@@ -1,0 +1,25 @@
+
+# Environment variables and API keys
+.env
+.env.*
+
+# Keep example environment files if you create one
+!.env.example
+
+# Virtual environment
+.venv/
+venv/
+
+# Python cache files
+__pycache__/
+*.py[cod]
+
+# Test and development files
+.pytest_cache/
+.coverage
+
+# Editor and operating system files
+.vscode/
+.DS_Store
+Thumbs.db
+
