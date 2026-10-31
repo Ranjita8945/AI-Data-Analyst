@@ -1,5 +1,8 @@
 import hashlib
 
+from src.ai_analyst import ask_your_data, recommend_chart
+
+
 import pandas as pd
 import streamlit as st
 import plotly.express as px
@@ -194,7 +197,8 @@ if uploaded_file is not None:
             charts_tab,
             cleaning_tab,
             eda_tab,
-            sql_tab
+            sql_tab,
+            ai_tab
         ) = st.tabs(
             [
                 "📄 Data Preview",
@@ -204,7 +208,8 @@ if uploaded_file is not None:
                 "📊 Chart Explorer",
                 "🧼 Data Cleaning",
                 "🔬 Advanced EDA",
-                "🗄️ SQL Analytics"
+                "🗄️ SQL Analytics",
+                "🤖 Ask Your Data"
             ]
         )
 
@@ -1226,9 +1231,170 @@ FROM uploaded_data;
                     key="download_sql_results"
                 )
 
+        
+        with ai_tab:
+            st.subheader("🤖 Ask Your Data")
+            st.write(
+                "Ask questions about your dataset in plain English. "
+                "AI will generate SQL and execute it for you."
+            )
 
-    
+            st.markdown("### Dataset Schema")
 
+            schema_df = pd.DataFrame({
+                "Column": df.columns,
+                "Data Type": df.dtypes.astype(str).values,
+            })
+
+            st.dataframe(
+                schema_df,
+                use_container_width=True,
+                hide_index=True,
+            )
+
+            question = st.text_input(
+                "Ask a question about your dataset",
+                placeholder="Example: Show the top 5 records by salary",
+                key="ai_question",
+            )
+
+            if st.button(
+                "✨ Generate Insights",
+                type="primary",
+                key="ask_your_data_button",
+            ):
+                if not question.strip():
+                    st.warning("Please enter a question.")
+                else:
+                    try:
+                        with st.spinner(
+                            "AI is generating and executing SQL..."
+                        ):
+                            generated_sql, answer_df = ask_your_data(
+                            df,
+                            question,
+                           )
+
+                        st.success("Analysis completed successfully!")
+
+                        st.markdown("### Generated SQL")
+                        st.code(generated_sql, language="sql")
+
+                        st.markdown("### Results")
+                        st.dataframe(
+                            answer_df,
+                            use_container_width=True,
+                            hide_index=True,
+                        )
+
+                        
+                        st.markdown("### 📊 AI-Generated Visualization")
+
+                        try:
+                            chart_config = recommend_chart(
+                                answer_df,
+                                question,
+                            )
+
+                            chart_type = chart_config["chart_type"]
+                            x_column = chart_config.get("x_column")
+                            y_column = chart_config.get("y_column")
+                            title = chart_config["title"]
+
+                            if chart_type == "bar":
+                                if x_column and y_column:
+                                    fig = px.bar(
+                                        answer_df,
+                                        x=x_column,
+                                        y=y_column,
+                                        title=title,
+                                    )
+                                else:
+                                    fig = px.bar(
+                                        answer_df,
+                                        x=x_column,
+                                        title=title,
+                                    )
+
+                            elif chart_type == "line":
+                                fig = px.line(
+                                    answer_df,
+                                    x=x_column,
+                                    y=y_column,
+                                    title=title,
+                                )
+
+                            elif chart_type == "scatter":
+                                fig = px.scatter(
+                                    answer_df,
+                                    x=x_column,
+                                    y=y_column,
+                                    title=title,
+                                )
+
+                            elif chart_type == "histogram":
+                                fig = px.histogram(
+                                    answer_df,
+                                    x=x_column,
+                                    title=title,
+                                )
+
+                            elif chart_type == "box":
+                                if x_column and y_column:
+                                    fig = px.box(
+                                        answer_df,
+                                        x=x_column,
+                                        y=y_column,
+                                        title=title,
+                                    )
+                                else:
+                                    fig = px.box(
+                                        answer_df,
+                                        y=x_column,
+                                        title=title,
+                                    )
+
+                            elif chart_type == "pie":
+                                fig = px.pie(
+                                    answer_df,
+                                    names=x_column,
+                                    values=y_column,
+                                    title=title,
+                                )
+
+                            else:
+                                st.warning(
+                                    "No supported chart could be generated."
+                                )
+                                fig = None
+
+                            if fig is not None:
+                                st.plotly_chart(
+                                    fig,
+                                    use_container_width=True,
+                                )
+
+                        except Exception as error:
+                            st.warning(
+                                f"Chart generation failed: {error}"
+                            )
+
+
+
+                        st.download_button(
+                            "⬇️ Download Results",
+                            data=answer_df.to_csv(
+                                index=False
+                            ).encode("utf-8"),
+                            file_name="ai_analysis_results.csv",
+                            mime="text/csv",
+                            key="download_ai_results",
+                        )
+
+                    except Exception as error:
+                        st.error(f"AI analysis failed: {error}")
+
+        
     # =====================================================
     # 8. ERROR HANDLING
     # =====================================================
